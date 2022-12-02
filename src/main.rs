@@ -1,7 +1,12 @@
-use std::{env, process, fs::{self, File}, io, collections::HashMap};
 
-use walkdir::{WalkDir};
+use std::fs;
+use std::{
+    collections::HashMap,
+    env,
+    io, process,
+};
 
+use walkdir::WalkDir;
 
 // Mod Cleaner is a mod cleaner tool responsible for deleting
 // duplicate mod files for the Sims 4. This could also be used for other
@@ -19,7 +24,7 @@ fn main() {
     }
     let mod_path = &args[1];
     println!("Searching for duplicate mods in: {mod_path}");
-    
+
     // the total number of files removed.
     match dedup_files(mod_path) {
         Ok(num_files) => println!("{num_files} file(s) removed."),
@@ -28,13 +33,11 @@ fn main() {
 }
 
 fn dedup_files(mod_path: &str) -> Result<u32, io::Error> {
-
     let mut total: u32 = 0;
     let mut file_names = HashMap::new();
 
     let walker = WalkDir::new(mod_path).into_iter();
     for entry in walker.filter_map(|e| e.ok()) {
-
         if entry.path().is_dir() {
             println!("looking in dir: {}", entry.path().display());
         }
@@ -47,7 +50,7 @@ fn dedup_files(mod_path: &str) -> Result<u32, io::Error> {
                     println!("duplicate file :: {}", f_name);
                     fs::remove_file(entry.path()).expect("failed to delete file.");
                     total += 1u32;
-                },
+                }
                 _ => {
                     file_names.insert(f_name, ());
                 }
@@ -56,7 +59,6 @@ fn dedup_files(mod_path: &str) -> Result<u32, io::Error> {
     }
 
     Ok(total)
-
 }
 
 fn is_mod_file(fname: &str) -> bool {
@@ -65,9 +67,13 @@ fn is_mod_file(fname: &str) -> bool {
 
 #[test]
 fn delete_dup_files() -> Result<(), io::Error> {
-    File::create("testdata/moddir2/[D1] my mod.package")?;
-    File::create("testdata/[D1] my mod.package")?;
+    fs::File::create("testdata/moddir2/[D1] my mod.package")?;
+    fs::File::create("testdata/[D1] my mod.package")?;
     let total = dedup_files("testdata").ok().unwrap();
-    assert_eq!(2, total, "expected 2 dup files to be deleted but got {}", total);
+    assert_eq!(
+        2, total,
+        "expected 2 dup files to be deleted but got {}",
+        total
+    );
     Ok(())
 }
